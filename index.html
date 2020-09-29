@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Cropper</title>
+  </head>
+
+  <body>
+    <h1>Cropper</h1>
+
+    <label for="images" id="ins1">Select Images:</label>
+
+    <input type="file" id="images" name="images" multiple><br><br>
+
+    <canvas id="c"></canvas>
+
+    <button id="submission">Submit Crop</button>
+    <p id="progress"></p>
+    <button id="download_link">Generate Download Link</button>
+    <a id="output">Download Zip File Here</a>
+
+
+  </body>
+
+  <script type="module">
+
+    import './jszip.js';
+
+    submission.style.display = "none";
+
+    output.style.display = "none";
+
+    download_link.style.display = "none";
+
+    let ctx = c.getContext("2d");
+
+    let image_display = false;
+    const model_img = new Image();
+
+    let animate = function() {
+      requestAnimationFrame(animate);
+
+      if(images.files.length == 0) return;
+
+      if(image_display) return;
+
+      let model = images.files[0];
+      let reader = new FileReader();
+
+      reader.onload = function(e) {
+
+        model_img.src = e.target.result;
+
+        model_img.onload = function () {
+          c.width = this.width;
+          c.height = this.height;
+          ctx.drawImage(this, 0, 0);
+        }
+
+      }
+
+      reader.readAsDataURL(model);
+
+      image_display = true;
+
+      ins1.style.display = 'none';
+      images.style.display = 'none';
+      submission.style.display = 'block';
+
+    }
+
+    let zip = new JSZip();
+    let zip_done = false;
+    let load_count = 0;
+    let processed_count = 0;
+
+    submission.onclick = function() {
+
+      download_link.style.display = 'block';
+
+      let zip_img = zip.folder("images");
+
+      const top_left = [Math.min(curr_x, corner_x), Math.min(curr_y, corner_y)];
+
+      let hid = document.createElement('canvas');
+
+      hid.width = Math.abs(curr_x - corner_x);
+      hid.height = Math.abs(curr_y - corner_y);
+
+
+      for(const image of images.files) {
+        let image_reader = new FileReader();
+
+        image_reader.onload = function (e) {
+
+          let hid_cxt = hid.getContext('2d');
+
+          let temp = new Image();
+          temp.src = e.target.result;
+
+          temp.onload = function () {
+
+            hid_cxt.drawImage(temp, top_left[0], top_left[1], c.width, c.height, 0, 0, c.width, c.height);
+
+            let str = "data:image/png;base64,";
+            let data = hid.toDataURL();
+
+            zip_img.file(`pic${load_count++}.png`, data.substring(str.length, data.length), {base64:true});
+
+            progress.innerText = `${images.files.length - load_count} images remaining...`;
+
+          }
+
+        }
+
+        image_reader.readAsDataURL(image);
+
+      }
+
+    }
+
+    download_link.onclick = function () {
+      zip.generateAsync({type:"blob"}).then(function (blob) {
+        output.href = window.URL.createObjectURL(blob);
+        output.download = 'output.zip';
+        output.style.display = 'block';
+      });
+    }
+
+
+
+
+
+    let paint_on = false;
+
+    let corner_x = 0;
+    let corner_y = 0;
+
+    let curr_x = 0;
+    let curr_y = 0;
+
+
+    window.addEventListener('mousedown', e => {
+
+      if(e.clientX < c.offsetLeft - window.scrollX || e.clientX > c.offsetLeft + c.width - window.scrollX ||
+      e.clientY < c.offsetTop - window.scrollY || e.clientY > c.offsetTop + c.height - window.scrollY) {
+        return;
+      }
+
+      paint_on = true;
+
+      corner_x = e.clientX - c.offsetLeft + window.scrollX;
+      corner_y = e.clientY - c.offsetTop + window.scrollY;
+
+    } );
+
+
+    window.addEventListener('mousemove', e => {
+
+      if(!paint_on) { return; }
+
+      curr_x = e.clientX - c.offsetLeft + window.scrollX;
+      curr_y = e.clientY - c.offsetTop + window.scrollY;
+
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.drawImage(model_img, 0, 0);
+
+      ctx.strokeStyle = "#FFFF00";
+
+      ctx.beginPath();
+      ctx.moveTo(corner_x, corner_y);
+      ctx.lineTo(corner_x, curr_y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(corner_x, curr_y);
+      ctx.lineTo(curr_x, curr_y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(curr_x, curr_y);
+      ctx.lineTo(curr_x, corner_y);
+      ctx.closePath();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(curr_x, corner_y);
+      ctx.lineTo(corner_x, corner_y);
+      ctx.closePath();
+      ctx.stroke();
+
+
+    } );
+
+    window.addEventListener('mouseup', e => {
+
+      paint_on = false;
+
+    } );
+
+    animate();
+
+
+  </script>
+
+</html>
