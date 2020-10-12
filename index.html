@@ -33,6 +33,7 @@
     download_link.style.display = "none";
 
     let ctx = c.getContext("2d");
+    let scale = 1;
 
     let image_display = false;
     const model_img = new Image();
@@ -52,6 +53,9 @@
         model_img.src = e.target.result;
 
         model_img.onload = function () {
+          if(this.width > 500 || this.height > 500) {
+            scale = (500/Math.max(this.width, this.height));
+          }
           c.width = this.width;
           c.height = this.height;
           ctx.drawImage(this, 0, 0);
@@ -100,7 +104,8 @@
 
           temp.onload = function () {
 
-            hid_cxt.drawImage(temp, top_left[0], top_left[1], c.width, c.height, 0, 0, c.width, c.height);
+            hid_cxt.drawImage(temp, top_left[0]*scale, top_left[1]*scale,
+              c.width*scale, c.height*scale, 0, 0, c.width*scale, c.height*scale);
 
             let str = "data:image/png;base64,";
             let data = hid.toDataURL();
