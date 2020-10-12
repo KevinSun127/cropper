@@ -56,8 +56,8 @@
           if(this.width > 500 || this.height > 500) {
             scale = (500/Math.max(this.width, this.height));
           }
-          c.width = this.width;
-          c.height = this.height;
+          c.width = this.width*scale;
+          c.height = this.height*scale;
           ctx.drawImage(this, 0, 0);
         }
 
