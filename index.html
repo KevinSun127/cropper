@@ -53,11 +53,10 @@
         model_img.src = e.target.result;
 
         model_img.onload = function () {
-          if(this.width > 500 || this.height > 500) {
-            scale = (500/Math.max(this.width, this.height));
-          }
-          c.width = this.width*scale;
-          c.height = this.height*scale;
+          c.width = this.width;
+          c.height = this.height;
+          scale = 500/Math.max(this.width, this.height, 500);
+          ctx.scale(this.width*scale, this.height*scale);
           ctx.drawImage(this, 0, 0);
         }
 
