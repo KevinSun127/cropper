@@ -55,7 +55,7 @@
         model_img.onload = function () {
           c.width = this.width;
           c.height = this.height;
-          scale = 500/Math.max(this.width, this.height, 500);
+          scale = 500/Math.min(this.width, this.height, 500);
           ctx.scale(this.width*scale, this.height*scale);
           ctx.drawImage(this, 0, 0);
         }
@@ -130,9 +130,6 @@
         output.style.display = 'block';
       });
     }
-
-
-
 
 
     let paint_on = false;
