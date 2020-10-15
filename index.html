@@ -54,11 +54,10 @@
 
         model_img.onload = function () {
           scale = 500/Math.max(this.width, this.height, 500);
-          c.width = this.width;
-          c.height = this.height;
-          ctx.drawImage(this, 0, 0);
-          ctx.scale(this.width*scale, this.height*scale);
-
+          c.width = this.width*scale;
+          c.height = this.height*scale;
+          ctx.drawImage(this, 0, 0, this.width, this.height,
+          0, 0, c.width, c.height);
         }
 
       }
@@ -80,11 +79,14 @@
 
     submission.onclick = function() {
 
+      load_count = 0;
+
       download_link.style.display = 'block';
 
       let zip_img = zip.folder("images");
 
       const top_left = [Math.min(curr_x, corner_x), Math.min(curr_y, corner_y)];
+      const dist = [Math.abs(corner_x-curr_x), Math.abs(corner_y-curr_y)];
 
       let hid = document.createElement('canvas');
 
@@ -104,8 +106,8 @@
 
           temp.onload = function () {
 
-            hid_cxt.drawImage(temp, top_left[0]*scale, top_left[1]*scale,
-              c.width*scale, c.height*scale, 0, 0, c.width*scale, c.height*scale);
+            hid_cxt.drawImage(temp, top_left[0]/scale, top_left[1]/scale,
+              temp.width, temp.height, 0, 0, c.width, c.height);
 
             let str = "data:image/png;base64,";
             let data = hid.toDataURL();
@@ -165,7 +167,8 @@
       curr_y = e.clientY - c.offsetTop + window.scrollY;
 
       ctx.clearRect(0, 0, c.width, c.height);
-      ctx.drawImage(model_img, 0, 0);
+      ctx.drawImage(model_img, 0, 0, model_img.width, model_img.height,
+      0, 0, c.width, c.height);
 
       ctx.strokeStyle = "#FFFF00";
 
